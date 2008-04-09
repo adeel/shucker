@@ -82,6 +82,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
+__author__ = "Adeel Ahmad Khan (adeel2@umbc.edu)"
+__version__ = "0.1"
+__license__ = "GPL"
+
 import sys
 import re
 
@@ -228,4 +232,4 @@ class HTMLStripper(SGMLParser):
     return html
 
 if __name__ == '__main__':
-  print 'Shucker 0.1'
+  print 'Shucker %s' % __version__
