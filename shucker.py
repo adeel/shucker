@@ -116,7 +116,9 @@ def shuck(html):
 
   html = HTMLStripper().strip(unicode(soup), valid_tags, invalid_attributes)
   
+  html = html.replace('&nbsp;', ' ')
   html = re.compile('<(div|span|p)>\s*</\\1>').sub('', html)
+  html = re.compile('(<br />)+').sub('', html)
   
   return unicode(BeautifulSoup(html)).strip()
 
@@ -167,7 +169,7 @@ def _strip_context_blocks(soup):
   for div in soup.findAll('div'):
     try: id = div['id'].lower()
     except KeyError: id = ''
-    if id in ['header', 'menu', 'footer'] or id.startswith('nav'):
+    if id in ['header', 'menu', 'sidebar', 'footer'] or id.startswith('nav'):
       div.extract()
   return soup
 
