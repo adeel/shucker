@@ -118,7 +118,7 @@ def shuck(html):
   
   html = html.replace('&nbsp;', ' ')
   html = re.compile('<(div|span|p)>\s*</\\1>').sub('', html)
-  html = re.compile('(<br />)+').sub('', html)
+  html = re.compile('(<br />)+').sub('<br />', html)
   
   return unicode(BeautifulSoup(html)).strip()
 
