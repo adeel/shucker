@@ -1,0 +1,65 @@
+Shucker
+=======
+
+Shucker takes any (X)HTML and gives you back a stripped down version. You
+can give it any web page and it will find the actual content of the page,
+minus styling, scripts, headers, footers, navigation elements and so on.
+Or you can just give it a bit of (X)HTML (like a blog comment) and it will
+remove anything `bad'. Shucker always returns valid markup, even if you
+give it invalid markup.
+
+  Usage
+  -----
+  
+  Standard usage:
+  
+    import shucker
+    html = '''
+    <html>
+      <head>
+        <title>Someone's Webpage</title>
+      </head>
+      <body>
+        <div id="header">
+          <h1>Someone's Website</h1>
+        </div>
+        <div id="content">
+          <h2>Someone's Webpage!</h2>
+      
+          <p style="color: #f00;" align=CENTER>This is a paragraph.</p>
+      
+          <!-- This comment will be stripped. -->
+      
+          <table><tr><td>
+            <p>Click this <a href="javascript:alert('evil');">innocent</a>
+            link.</td></p>
+          </td></tr></table>
+        </div>
+        <div id="footer">
+          <p>This web page was created by Nyoob Ekid on 1 Feb 2003.</p>
+        </div>
+      </body>
+    </html>'''
+    html = shucker.shuck(html)
+  
+  This example will result in this:
+  
+    <div> <h2>Someone's Webpage!</h2> <p>This is a paragraph.</p> <div>
+    <p>Click this <a>innocent</a> link.</p></div> </div>
+  
+  Limitations
+  -----------
+  
+  Shucker will usually do a pretty good job, but it may have trouble with
+  some pages:
+  
+    * Shucker does best with semantic markup. Table-based layouts, for
+      example, are harder to work with (it still does a fairly good job,
+      though).
+  
+    * Shucker looks for non-text content (headers, footers and navigation
+      elements) by looking for `suspicious' <div> elements. It often misses
+      things, and it may even mistakenly remove something that is actually
+      part of the page.
+
+Enjoy.
