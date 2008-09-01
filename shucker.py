@@ -47,6 +47,8 @@ def _strip_extra(soup):
     return BeautifulSoup(unicode(html))
 
 def _strip_context(soup):
+    """Attempt to strip `context' from the page-- header, footer, navigation,
+    and so on."""
     for div in soup.findAll('div'):
         if 'id' not in div:
             continue
@@ -57,10 +59,9 @@ def _strip_context(soup):
     return soup
 
 def _strip_presentation(html):
+    """Strip styles, scripts and forms."""
     html = _strip_tags(html, ['script', 'style', 'input', 'label', 'fieldset',
         'select', 'option'], True)
-    # html = re.compile('<(script|style|input|label|fieldset|select|option
-    # )[^>]*?>.*?</\\1>', re.IGNORECASE | re.DOTALL).sub('', html)
     html = re.compile('\s*href\s*=\s*\"\s*(java|vb)script:[^\"]*\"',
         re.IGNORECASE | re.DOTALL).sub('', html)
     html = re.compile('\s*href\s*=\s*\'\s*(java|vb)script:[^\']*\'',
@@ -70,6 +71,7 @@ def _strip_presentation(html):
     return html
 
 def _strip_comments(html):
+    """Strip comments and processor instructions."""
     html = re.compile('<![\s\S]*?--[ \t\n\r]*>').sub('', html)
     html = html.replace('<!--', '')
     html = html.replace('<![CDATA[', '')
@@ -77,12 +79,14 @@ def _strip_comments(html):
     return html
 
 def _strip_tables(html):
+    """Replace tables with divs."""
     html = re.compile('<\s*(tr|td)[^>]*>', re.IGNORECASE).sub('<div>', html)
     html = re.compile('<\s*/\s*(tr|td)\s*>', re.IGNORECASE).sub('</div>', html)
     html = _strip_tags(html, ['table', 'tbody', 'tr', 'th'], False)
     return html
 
-def _strip_tags(html, tags=None, strip_contents=False):
+def _strip_tags(html, tags, strip_contents=False):
+    """Strip the specified tags from the page."""
     all_tags = re.compile('<([^>]+)>').findall(html)
     for tag in all_tags:
         el = tag.partition(' ')[0]
@@ -95,6 +99,7 @@ def _strip_tags(html, tags=None, strip_contents=False):
 
 import sgmllib
 class HTMLStripper(sgmllib.SGMLParser):
+    """Strip all `invalid' tags and attributes."""
     def __init__(self):
         sgmllib.SGMLParser.__init__(self)
         self.safe_tags = []
