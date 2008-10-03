@@ -49,9 +49,7 @@ def _strip_extra(soup):
 def _strip_context(soup):
     """Attempt to strip `context' from the page-- header, footer, navigation,
     and so on."""
-    for div in soup.findAll('div'):
-        if 'id' not in div:
-            continue
+    for div in soup.findAll('div', id=True):
         id = div['id'].lower()
         context_blocks = ['header', 'menu', 'sidebar', 'footer']
         if id in context_blocks or id.startswith('nav'):
