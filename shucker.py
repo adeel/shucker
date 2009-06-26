@@ -24,6 +24,8 @@ tags_extra = {
   'images': ('img', 'map', 'area')
 }
 
+block_tags = ('html', 'body', 'table', 'tr', 'th', 'td', 'form', 'fieldset')
+                  
 attrs_extra = {
   'scripts': ('onclick', 'ondblclick',
     'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout',
@@ -55,21 +57,41 @@ def shuck(html, **options):
   doc = _shuck(parse(html), tags, **options)
   body = doc.children[0]
   
-  return body.to_html()
+  html = body.to_html()
+  
+  html = re.compile('\s*href\s*=\s*\"\s*(java|vb)script:[^\"]*\"',
+      re.IGNORECASE | re.DOTALL).sub('', html)
+  html = re.compile('\s*href\s*=\s*\'\s*(java|vb)script:[^\']*\'',
+      re.IGNORECASE | re.DOTALL).sub('', html)
+  html = re.compile('\s*href\s*=\s*(java|vb)script:(.*)',
+      re.IGNORECASE | re.DOTALL).sub('', html)
+  
+  return html
 
 def _shuck(element, tags, **options):
   children = []
   for child in element.children:
     if child.type == 'element':
       if child.name not in tags:
-        if child.name in ('html', 'body', 'table', 'tr', 'th', 'td',
-                          'form', 'fieldset'):
+        if child.name in block_tags:
           child.name = 'div'
       if child.name in tags:
-        if (not options.get('allow_styles')
-            and child.name == 'link'
-            and child.attrs.get('rel') == 'stylesheet'):
-          continue
+        if not options.get('allow_styles'):
+          if child.name == 'link' and child.attrs.get('rel') == 'stylesheet':
+            continue
+        
+        attrs = Attributes(child.attrs)
+        
+        if not options.get('allow_styles'):
+          for attr in attrs_extra['styles']:
+            attrs.remove(attr)
+        
+        if not options.get('allow_scripts'):
+          for attr in attrs_extra['scripts']:
+            attrs.remove(attr)
+        
+        child.attrs = attrs.to_dict()
+        
         child = _shuck(child, tags, **options)
         children.append(child)
     elif child.type in ('text', 'entity_ref', 'char_ref'):

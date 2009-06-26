@@ -208,6 +208,12 @@ class Attributes(object):
     if key in attrs:
       return attrs[key]
   
+  def remove(self, attr):
+    attrs = self.to_dict()
+    if attrs.get(attr):
+      del attrs[attr]
+    self.attrs = attrs.items()
+  
   def __repr__(self):
     return ''.join([' %s="%s"' % (k, v.replace(r'"', r'\"'))
                       for k, v in self.attrs])
