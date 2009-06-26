@@ -1,4 +1,3 @@
-from htmlentitydefs import entitydefs
 from parser import *
 
 tags_core = {
