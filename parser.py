@@ -152,7 +152,7 @@ class Text(Node):
     self.text = text
   
   def to_html(self):
-    text = self.text.replace('\r', '\n').strip()
+    text = self.text.replace('\r', '\n')
     text = re.compile('\n( )+').sub('\n', text)
     text = text.encode('utf-8', 'xmlcharrefreplace')
     return text
