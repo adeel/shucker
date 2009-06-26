@@ -1,14 +1,10 @@
-this will take an HTML document and give you a printer-friendly version.
+Shucker takes an HTML document and strips it down.  You can think of the
+result as a "printer-friendly" version.
 
-it strips styles, scripts and other presentational tags and attributes.  it
-also attemps to remove any headers, footers and navigation elements.  it
-also turns table cells into div's, with sometimes disastrous results.  it's an
-HTML sanitizer written for a very specific purpose (making ugly web pages look
-good in print).  i should write a web interface to it.
-
-here's an example.
+Example.
 
     import shucker
+
     html = '''
     <html>
       <head>
@@ -35,8 +31,11 @@ here's an example.
         </div>
       </body>
     </html>'''
-    html = shucker.shuck(html)
-    print html
-    # this will print:
+
+    print shucker.shuck(html)
+
     # <div> <h2>Someone's Webpage!</h2> <p>This is a paragraph.</p> <div><div>
     # <p>Click this <a>innocent</a> link.</p></div> </div> </div>
+
+Note.  It is currently being refactored and the latest revision may not work
+as expected.
