@@ -2,20 +2,6 @@ import re
 from HTMLParser import HTMLParser
 import htmlentitydefs
 
-# <div id="wrapper">
-# <h1>
-# <span>
-# Header
-# </span>
-# </h1>
-# <br/>
-# <div id="content">
-# <p>
-# Welcome.
-# </p>
-# </div>
-# </div>
-
 class Parser(object):
   
   def __init__(self):
