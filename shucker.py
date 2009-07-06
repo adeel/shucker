@@ -99,10 +99,13 @@ class Parser(HTMLParser):
       self.buffer += '&amp;#%s;' % ref
   
   def handle_endtag(self, name):
-    if name not in self.valid_tags:
-      if self.removing_trees and name == self.removing_trees[-1]:
+    if self.removing_trees:
+      if name == self.removing_trees[-1]:
         self.removing_trees.pop()
-        return
+      return
+    
+    if name not in self.valid_tags:
+
       
       if (name in taginfo.tags
       and taginfo.type(name) not in ('tables', 'container')):
