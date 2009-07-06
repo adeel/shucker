@@ -10,7 +10,7 @@ tags = {
   'applet': {'type': 'java'},
   'area': {'type': 'images'},
   'b': {'type': 'core'},
-  'bdo': {'type': 'i18n'},
+  'bdo': {'type': 'core'},
   'big': {'type': 'core'},
   'blockquote': {'type': 'core'},
   'body': {'type': 'container'},
