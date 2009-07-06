@@ -87,10 +87,10 @@ tags = {
 }
 
 attributes = {
-  'core': ('id', 'class', 'title', 'lang', 'xml:lang', 'dir', 'href',
-           'hreflang', 'rel', 'rev', 'charset', 'type', 'cite', 'datetime'),
-  'styles': ('style', 'media', 'xml:space'),
-  'scripts': ('src', 'defer', 'xml:space',
+  'core': ('title', 'lang', 'xml:lang', 'dir', 'href', 'hreflang', 'rel',
+           'rev', 'charset', 'type', 'cite', 'datetime'),
+  'styles': ('id', 'class', 'style', 'media', 'xml:space'),
+  'scripts': ('id', 'class', 'src', 'defer', 'xml:space',
               'onload', 'onunload', 'onclick', 'ondblclick', 'onmousedown',
               'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout',
               'onkeypress', 'onkeydown', 'onkeyup', 'onfocus', 'onblur',
