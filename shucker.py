@@ -64,6 +64,7 @@ class Parser(HTMLParser):
     if name not in self.valid_tags:
       if (name in taginfo.tags and taginfo.type(name) not in tags_to_divize):
         return
+      
       name = 'div'
     
     attrs = [(k, v) for k, v in attrs if self.is_attr_allowed(k)]
@@ -105,10 +106,7 @@ class Parser(HTMLParser):
       return
     
     if name not in self.valid_tags:
-
-      
-      if (name in taginfo.tags
-      and taginfo.type(name) not in ('tables', 'container')):
+      if (name in taginfo.tags and taginfo.type(name) not in tags_to_divize):
         return
       
       name = 'div'
