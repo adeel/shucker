@@ -46,6 +46,15 @@ class Parser(HTMLParser):
     
     attrs = [(k, v) for k, v in attrs if self.is_attr_allowed(k)]
     
+    if 'scripts' not in self.allow:
+      attrs = dict(attrs)
+      
+      if name == 'a' and 'href' in attrs:
+        attrs['href'] = re.compile('(java|vb)script:.*', re.I).sub('#',
+          attrs['href'])
+      
+      attrs = attrs.items()
+    
     self.buffer += '<%s%s>' % (name, attrs_to_html(attrs))
   
   def handle_startendtag(self, name, attrs):
