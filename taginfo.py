@@ -1,3 +1,7 @@
+def type(name):
+  if name in tags:
+    return tags[name].get('type')
+
 tags = {
   'a': {'type': 'core'},
   'abbr': {'type': 'core'},

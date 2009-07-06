@@ -4,6 +4,9 @@ from HTMLParser import HTMLParser
 import taginfo
 import htmltidy
 
+tags_to_empty = ('forms', 'flash', 'java', 'meta')
+tags_to_divize = ('tables', 'container')
+
 def shuck(html, allow=('core',)):
   html = htmltidy.tidy(html)
   html = Parser(allow).read(html)
@@ -13,14 +16,13 @@ def shuck(html, allow=('core',)):
 
 class Parser(HTMLParser):
   
-  elements_to_clear = []
+  # queue of trees that are being removed
+  removing_trees = []
   
   def __init__(self, allow):
     self.allow = allow
-    
     self.valid_tags = [tag for tag, info in taginfo.tags.items()
                            if info.get('type') in self.allow]
-    
     HTMLParser.__init__(self)
   
   def read(self, html):
@@ -30,16 +32,14 @@ class Parser(HTMLParser):
     return self.buffer
   
   def handle_starttag(self, name, attrs):
-    if self.elements_to_clear:
+    if self.removing_trees:
       return
     
     if name not in self.valid_tags:
-      if name in taginfo.tags and taginfo.tags[name].get('type') in ('forms',
-        'flash', 'java', 'meta'):
-        self.elements_to_clear.append(name)
+      if name in taginfo.tags and taginfo.type(name) in tags_to_empty:
+        self.removing_trees.append(name)
       
-      if (name in taginfo.tags
-      and taginfo.tags[name].get('type') not in ('tables', 'container')):
+      if (name in taginfo.tags and taginfo.type(name) not in tags_to_divize):
         return
       
       name = 'div'
@@ -58,12 +58,11 @@ class Parser(HTMLParser):
     self.buffer += '<%s%s>' % (name, attrs_to_html(attrs))
   
   def handle_startendtag(self, name, attrs):
-    if self.elements_to_clear:
+    if self.removing_trees:
       return
     
     if name not in self.valid_tags:
-      if (name in taginfo.tags
-      and taginfo.tags[name].get('type') not in ('tables', 'container')):
+      if (name in taginfo.tags and taginfo.type(name) not in tags_to_divize):
         return
       name = 'div'
     
@@ -72,7 +71,7 @@ class Parser(HTMLParser):
     self.buffer += '<%s%s/>' % (name, attrs_to_html(attrs))
   
   def handle_data(self, text):
-    if self.elements_to_clear:
+    if self.removing_trees:
       return
     
     text = text.replace('\r', '\n')
@@ -82,13 +81,13 @@ class Parser(HTMLParser):
     self.buffer += text
   
   def handle_charref(self, ref):
-    if self.elements_to_clear:
+    if self.removing_trees:
       return
     
     self.buffer += '&#%s;' % ref
   
   def handle_entityref(self, ref):
-    if self.elements_to_clear:
+    if self.removing_trees:
       return
     
     if ref in htmlentitydefs.entitydefs:
@@ -101,12 +100,12 @@ class Parser(HTMLParser):
   
   def handle_endtag(self, name):
     if name not in self.valid_tags:
-      if self.elements_to_clear and name == self.elements_to_clear[-1]:
-        self.elements_to_clear.pop()
+      if self.removing_trees and name == self.removing_trees[-1]:
+        self.removing_trees.pop()
         return
       
       if (name in taginfo.tags
-      and taginfo.tags[name].get('type') not in ('tables', 'container')):
+      and taginfo.type(name) not in ('tables', 'container')):
         return
       
       name = 'div'
