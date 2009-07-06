@@ -49,7 +49,7 @@ class Parser(HTMLParser):
     if 'scripts' not in self.allow:
       attrs = dict(attrs)
       
-      if name == 'a' and 'href' in attrs:
+      if 'href' in attrs:
         attrs['href'] = re.compile('(java|vb)script:.*', re.I).sub('#',
           attrs['href'])
       
