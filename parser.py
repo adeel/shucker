@@ -1,220 +1,102 @@
 import re
-from HTMLParser import HTMLParser
 import htmlentitydefs
+from HTMLParser import HTMLParser
+from tags import tags
 
-class Parser(object):
+def parse(html, valid_tags=(), invalid_attributes=()):
+  return Parser(valid_tags, invalid_attributes).parse(html)
+
+class Parser(HTMLParser):
   
-  def __init__(self):
-    pass
+  elements_to_clear = []
   
-  def parse(self, html):
-    nodelist = FlatParser().parse(html)
-    path = [Element('container')]
-    root = path[0]
-    for node in nodelist.nodes:
-      if node.type == 'start_tag':
-        element = Element(node.name, node.attrs.to_dict(), [])
-        path[-1].children.append(element)
-        path.append(element)
-      elif node.type == 'start_end_tag':
-        element = Element(node.name, node.attrs.to_dict(), [])
-        path[-1].children.append(element)
-      elif node.type == 'end_tag':
-        path.pop()
-      elif node.type == 'text':
-        if node.text and not node.text.isspace():
-          path[-1].children.append(node)
-      elif node.type in ('char_ref', 'entity_ref'):
-        path[-1].children.append(node)
+  def __init__(self, valid_tags, invalid_attributes):
+    self.valid_tags = valid_tags
+    self.invalid_attributes = invalid_attributes
     
-    return root
-  
-
-class Node(object):
-  
-  def __repr__(self):
-    return self.to_html()
-  
-
-class Element(Node):
-  
-  def __init__(self, name, attrs={}, children=[]):
-    self.type = 'element'
-    self.name = name
-    self.attrs = attrs
-    self.children = children
-  
-  def find(self, name, attrs={}):
-    results = []
-    
-    children = self.get_children()
-    for child in children:
-      if (child.name == name
-          and all([attrs[key] == child.attrs[key] for key in attrs.keys()])):
-        results.append(child)
-    
-    return results
-  
-  def get_children(self):
-    children = []
-    for child in self.children:
-      if child.type == 'element':
-        children.append(child)
-        children += child.get_children()
-    return children
-  
-  def to_html(self):
-    return (StartTag(self.name, self.attrs).to_html()
-          + ''.join([c.to_html() for c in self.children])
-          + EndTag(self.name).to_html())
-  
-
-class FlatParser(HTMLParser):
-  
-  def __init__(self):
     HTMLParser.__init__(self)
   
   def parse(self, html):
-    self.nodes = []
+    self.buffer = ''
     self.feed(html)
     self.close()
-    return NodeList(self.nodes)
+    return self.buffer
   
-  def handle_starttag(self, tag, attrs):
-    self.nodes.append(StartTag(tag, attrs))
-  
-  def handle_startendtag(self, tag, attrs):
-    self.nodes.append(StartEndTag(tag, attrs))
-  
-  def handle_endtag(self, tag):
-    self.nodes.append(EndTag(tag))
-  
-  def handle_data(self, data):
-    self.nodes.append(Text(data))
-  
-  def handle_charref(self, ref):
-    self.nodes.append(CharRef(ref))
-  
-  def handle_entityref(self, ref):
-    self.nodes.append(EntityRef(ref))
-  
+  def handle_starttag(self, name, attrs):
+    if self.elements_to_clear:
+      return
+    
+    if name not in self.valid_tags:
+      if name in tags and tags[name].get('type') in ('forms',
+        'flash', 'java', 'meta'):
+        self.elements_to_clear.append(name)
 
-class StartTag(Node):
-  type = 'start_tag'
+      if name in tags and tags[name].get('type') not in ('tables',
+        'container'):
+        return
+      
+      name = 'div'
+    
+    attrs = [(k, v) for k, v in attrs if k not in self.invalid_attributes]
+    
+    self.buffer += '<%s%s>' % (name, attrs_to_html(attrs))
   
-  def __init__(self, name, attrs={}):
-    self.name = name
-    self.attrs = Attributes(attrs)
+  def handle_startendtag(self, name, attrs):
+    if self.elements_to_clear:
+      return
+    
+    if name not in self.valid_tags:
+      if name in tags and tags[name].get('type') not in ('tables',
+        'container'):
+        return
+      name = 'div'
+    
+    attrs = [(k, v) for k, v in attrs if k not in self.invalid_attributes]
+    
+    self.buffer += '<%s%s/>' % (name, attrs_to_html(attrs))
   
-  def to_html(self):
-    return '<%s%s>' % (self.name, self.attrs)
-  
-
-class StartEndTag(Node):
-  type = 'start_end_tag'
-  
-  def __init__(self, name, attrs={}):
-    self.name = name
-    self.attrs = Attributes(attrs)
-  
-  def to_html(self):
-    return '<%s%s/>' % (self.name, self.attrs)
-  
-
-class EndTag(Node):
-  type = 'end_tag'
-  
-  def __init__(self, name):
-    self.name = name
-  
-  def to_html(self):
-    return '</%s>' % self.name
-  
-
-class Text(Node):
-  type = 'text'
-  
-  def __init__(self, text):
-    self.text = text
-  
-  def to_html(self):
-    text = self.text.replace('\r', '\n')
+  def handle_data(self, text):
+    if self.elements_to_clear:
+      return
+    
+    text = text.replace('\r', '\n')
     text = re.compile('\n( )+').sub('\n', text)
     text = text.encode('utf-8', 'xmlcharrefreplace')
-    return text
+    
+    self.buffer += text
   
-
-class CharRef(Node):
-  type = 'char_ref'
+  def handle_charref(self, ref):
+    if self.elements_to_clear:
+      return
+    
+    self.buffer += '&#%s;' % ref
   
-  def __init__(self, ref):
-    self.ref = ref
-  
-  def to_html(self):
-    return '&#%s;' % self.ref
-  
-
-class EntityRef(Node):
-  type = 'entity_ref'
-  
-  def __init__(self, ref):
-    self.ref = ref
-  
-  def to_html(self):
-    if self.ref in htmlentitydefs.entitydefs:
-      return '&%s;' % self.ref
+  def handle_entityref(self, ref):
+    if self.elements_to_clear:
+      return
+    
+    if ref in htmlentitydefs.entitydefs:
+      if ref == 'nbsp':
+        self.buffer += ' '
+      else:
+        self.buffer += '&%s;' % ref
     else:
-      return '&#%s' % self.ref
+      self.buffer += '&amp;#%s;' % ref
+  
+  def handle_endtag(self, name):
+    if name not in self.valid_tags:
+      if self.elements_to_clear and name == self.elements_to_clear[-1]:
+        self.elements_to_clear.pop()
+        return
+      
+      if name in tags and tags[name].get('type') not in ('tables',
+        'container'):
+        return
+      
+      name = 'div'
+    self.buffer += '</%s>' % name
   
 
-class EmptyNode(Node):
-  type = 'empty'
-  
-  def to_html(self):
-    return ''
-  
-
-class NodeList(list):
-  
-  def __init__(self, nodes=[]):
-    self.nodes = nodes
-  
-  def to_html(self):
-    return ''.join([n.to_html() for n in self.nodes])
-  
-  def append(self, node):
-    self.nodes.append(node)
-  
-  def __repr__(self):
-    return self.to_html()
-  
-
-class Attributes(object):
-  
-  def __init__(self, attrs):
-    if type(attrs) == dict:
-      attrs = attrs.items()
-    self.attrs = attrs
-  
-  def to_dict(self):
-    return dict(self.attrs)
-  
-  def to_html(self):
-    return ''.join([' %s="%s"' % (k, v.replace(r'"', r'\"'))
-                      for k, v in self.attrs])
-  
-  def get(self, key):
-    attrs = dict(self.attrs)
-    if key in attrs:
-      return attrs[key]
-  
-  def remove(self, attr):
-    attrs = self.to_dict()
-    if attrs.get(attr):
-      del attrs[attr]
-    self.attrs = attrs.items()
-  
-  def __repr__(self):
-    return ''.join([' %s="%s"' % (k, v.replace(r'"', r'\"'))
-                      for k, v in self.attrs])
-  
+def attrs_to_html(attrs):
+  return ''.join([' %s="%s"' % (k, v.replace(r'"', r'\"'))
+                  for k, v in attrs])
