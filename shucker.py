@@ -7,7 +7,7 @@ import htmltidy
 invalid_attributes = ('width', 'border', 'align', 'valign', 'size', 'style',
   'face', 'color')
 
-def shuck(html, allow=('text',), _invalid_attributes=()):
+def shuck(html, allow=('core',), _invalid_attributes=()):
   global invalid_attributes
   if _invalid_attributes:
     invalid_attributes = _invalid_attributes
