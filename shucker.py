@@ -13,22 +13,30 @@ def shuck(html, allow=('core',)):
   
   return html
 
-
 class Parser(HTMLParser):
+  """
+  Parses the document using HTMLParser, removing unknown elements, stripping
+  elements in tags_to_empty, and converting tags_to_divize into div elements.
+  """
   
   # queue of trees that are being removed
   removing_trees = []
   
   def __init__(self, allow):
+    "Takes one argument, allow: the type of tags to be allowed."
+    
     self.allow = allow
     self.valid_tags = [tag for tag, info in taginfo.tags.items()
                            if info.get('type') in self.allow]
     HTMLParser.__init__(self)
   
   def read(self, html):
+    "Reads the HTML and feeds it to the parser."
+    
     self.buffer = ''
     self.feed(html)
     self.close()
+    
     return self.buffer
   
   def handle_starttag(self, name, attrs):
@@ -112,6 +120,8 @@ class Parser(HTMLParser):
     self.buffer += '</%s>' % name
   
   def is_attr_allowed(self, attr):
+    "Checks whether the given attribute is allowed."
+    
     allowed_attrs = taginfo.attributes['core']
     
     for group in self.allow:
@@ -121,5 +131,7 @@ class Parser(HTMLParser):
   
 
 def attrs_to_html(attrs):
+  "Takes a list of tuples of attributes and converts it to HTML."
+  
   return ''.join([' %s="%s"' % (k, v.replace(r'"', r'\"'))
                   for k, v in attrs])
