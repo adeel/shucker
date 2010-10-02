@@ -1,8 +1,11 @@
 import re
 import htmlentitydefs
 from HTMLParser import HTMLParser
-import taginfo
+
 import htmltidy
+from BeautifulSoup import BeautifulSoup
+
+import taginfo
 
 tags_to_empty = ('forms', 'flash', 'java', 'meta', 'scripts')
 tags_to_divize = ('tables', 'container')
@@ -10,8 +13,26 @@ tags_to_divize = ('tables', 'container')
 def shuck(html, allow=('core',)):
   html = htmltidy.tidy(html)
   html = Parser(allow).read(html)
+  html = extract_contents(html)
   
   return html
+
+def extract_contents(html):
+  "Attempts to extract the contents out of the HTML document."
+  
+  soup = BeautifulSoup(html)
+  for header in soup.findAll(id='header') + soup.findAll({'class': 'header'}):
+    header.extract()
+  
+  for id in ('wrapper', 'container', 'content', 'article'):
+    div = soup.find(id=id)
+    if div:
+      soup = div
+    div = soup.find({'class': id})
+    if div:
+      soup = div
+  
+  return soup.renderContents()
 
 class Parser(HTMLParser):
   """
