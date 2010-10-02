@@ -4,7 +4,7 @@ from HTMLParser import HTMLParser
 import taginfo
 import htmltidy
 
-tags_to_empty = ('forms', 'flash', 'java', 'meta')
+tags_to_empty = ('forms', 'flash', 'java', 'meta', 'scripts')
 tags_to_divize = ('tables', 'container')
 
 def shuck(html, allow=('core',)):
