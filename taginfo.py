@@ -87,7 +87,7 @@ tags = {
 }
 
 attributes = {
-  'core': ('title', 'lang', 'xml:lang', 'dir', 'href', 'hreflang', 'rel',
+  'core': ('id', 'title', 'lang', 'xml:lang', 'dir', 'href', 'hreflang', 'rel',
            'rev', 'charset', 'type', 'cite', 'datetime'),
   'styles': ('id', 'class', 'style', 'media', 'xml:space'),
   'scripts': ('id', 'class', 'src', 'defer', 'xml:space',
