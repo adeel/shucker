@@ -77,7 +77,6 @@ class Parser(HTMLParser):
     
     text = text.replace('\r', '\n')
     text = re.compile('\n( )+').sub('\n', text)
-    text = text.encode('utf-8', 'xmlcharrefreplace')
     
     self.buffer += text
   
