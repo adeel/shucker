@@ -52,7 +52,7 @@ class Parser(HTMLParser):
       
       name = 'div'
     
-    attrs = [(k, v) for k, v in attrs if self.is_attr_allowed(k)]
+    attrs = [(k, v) for k, v in attrs if self.is_attr_allowed(name, k)]
     
     if 'scripts' not in self.allow:
       attrs = dict(attrs)
@@ -75,7 +75,7 @@ class Parser(HTMLParser):
       
       name = 'div'
     
-    attrs = [(k, v) for k, v in attrs if self.is_attr_allowed(k)]
+    attrs = [(k, v) for k, v in attrs if self.is_attr_allowed(name, k)]
     
     self.buffer += '<%s%s/>' % (name, attrs_to_html(attrs))
   
@@ -119,15 +119,13 @@ class Parser(HTMLParser):
       name = 'div'
     self.buffer += '</%s>' % name
   
-  def is_attr_allowed(self, attr):
-    "Checks whether the given attribute is allowed."
+  def is_attr_allowed(self, tag, attr):
+    "Checks whether a tag is allowed to have the given attribute."
     
-    allowed_attrs = taginfo.attributes['core']
+    if tag not in taginfo.tags:
+      return False
     
-    for group in self.allow:
-      allowed_attrs += taginfo.attributes.get(group)
-    
-    return attr in allowed_attrs
+    return attr in taginfo.attributes[taginfo.tags[tag]['type']]
   
 
 def attrs_to_html(attrs):
